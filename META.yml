@@ -1,0 +1,26 @@
+---
+abstract: 'yet another forking process controller'
+author:
+  - 'Alex White <VVu@geekfarm.org>'
+generated_by: 'Dist::Zilla version 1.092680'
+license: bsd
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Proc-Launcher
+requires:
+  Carp: 0
+  ExtUtils::MakeMaker: 0
+  File::Path: 0
+  File::Temp: 0
+  FindBin: 0
+  Getopt::Long: 0
+  Mouse: 0
+  POE: 0
+  POSIX: 0
+  Pod::Usage: 0
+  Scalar::Util: 0
+  Term::ANSIColor: 0
+  Test::More: 0
+  YAML: 0
+version: 0.0.1
