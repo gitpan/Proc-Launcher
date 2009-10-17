@@ -3,10 +3,11 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.5';
+our $VERSION = '0.0.6';
 
 #_* Libraries
 
+use File::Path;
 use POSIX qw(setsid :sys_wait_h);
 use Scalar::Util qw(looks_like_number);
 
@@ -19,7 +20,7 @@ Proc::Launcher - yet another forking process controller
 
 =head1 VERSION
 
-version 0.0.5
+version 0.0.6
 
 =head1 SYNOPSIS
 
@@ -154,7 +155,9 @@ has 'pid_dir'      => ( is => 'ro',
                         isa => 'Str',
                         lazy => 1,
                         default => sub {
-                            return join "/", $ENV{HOME}, "logs";
+                            my $dir = join "/", $ENV{HOME}, "logs";
+                            unless ( -d $dir ) {  mkpath( $dir ); }
+                            return $dir;
                         },
                     );
 
