@@ -3,8 +3,6 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.1';
-
 use Term::ANSIColor;
 
 use POE qw(Wheel::FollowTail);
@@ -59,7 +57,7 @@ Proc::Launcher::Tail - poe-based 'tail -f' on selected process logs
 
 =head1 VERSION
 
-version 0.0.2
+version 0.0.5
 
 =head1 DESCRIPTION
 

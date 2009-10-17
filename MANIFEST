@@ -4,12 +4,12 @@ MANIFEST
 META.yml
 Makefile.PL
 README
+bin/panctl
 dist.ini
 lib/Proc/Launcher.pm
 lib/Proc/Launcher/Manager.pm
 lib/Proc/Launcher/Supervisor.pm
 lib/Proc/Launcher/Tail.pm
-scripts/panctl
 t/00.load.t
 t/10_launcher_sleeper.t
 t/15_launcher_cleanexit.t
