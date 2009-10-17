@@ -1,4 +1,6 @@
 package Proc::Launcher::Manager;
+use strict;
+use warnings;
 use Mouse;
 
 our $VERSION = '0.0.1';
@@ -12,7 +14,7 @@ Proc::Launcher::Manager - spawn and manage multiple Proc::Launcher objects
 
 =head1 VERSION
 
-version 0.0.1
+version 0.0.2
 
 =head1 SYNOPSIS
 

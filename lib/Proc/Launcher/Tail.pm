@@ -1,4 +1,6 @@
 package Proc::Launcher::Tail;
+use strict;
+use warnings;
 use Mouse;
 
 our $VERSION = '0.0.1';
@@ -57,7 +59,7 @@ Proc::Launcher::Tail - poe-based 'tail -f' on selected process logs
 
 =head1 VERSION
 
-version 0.0.1
+version 0.0.2
 
 =head1 DESCRIPTION
 

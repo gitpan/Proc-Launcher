@@ -23,4 +23,4 @@ requires:
   Term::ANSIColor: 0
   Test::More: 0
   YAML: 0
-version: 0.0.1
+version: 0.0.2
