@@ -22,4 +22,4 @@ requires:
   Term::ANSIColor: 0
   Test::More: 0
   YAML: 0
-version: 0.0.6
+version: 0.0.7
