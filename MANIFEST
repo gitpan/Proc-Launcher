@@ -19,7 +19,5 @@ t/25_launcher_exec.t
 t/50_launch_manager.t
 t/critic.t
 t/meta.t
-t/pod-coverage.t
-t/pod.t
 t/release-pod-coverage.t
 t/release-pod-syntax.t

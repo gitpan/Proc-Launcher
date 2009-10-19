@@ -57,7 +57,7 @@ Proc::Launcher::Tail - poe-based 'tail -f' on selected process logs
 
 =head1 VERSION
 
-version 0.0.7
+version 0.0.8
 
 =head1 DESCRIPTION
 

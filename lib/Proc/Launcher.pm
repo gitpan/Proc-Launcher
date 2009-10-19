@@ -3,13 +3,12 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.7';
+our $VERSION = '0.0.8';
 
 #_* Libraries
 
 use File::Path;
 use POSIX qw(setsid :sys_wait_h);
-use Scalar::Util qw(looks_like_number);
 
 #_* POD
 
@@ -20,7 +19,7 @@ Proc::Launcher - yet another forking process controller
 
 =head1 VERSION
 
-version 0.0.7
+version 0.0.8
 
 =head1 SYNOPSIS
 
@@ -32,8 +31,8 @@ version 0.0.7
 
     # create a new launcher object
     my $launcher = Proc::Launcher->new( start_method => $start_myapp,
-                                            daemon_name  => 'myapp',
-                                          );
+                                        daemon_name  => 'myapp',
+                                      );
 
     # check if the process was already running
     if ( $launcher->is_running() ) { warn "Already running!\n" }
@@ -431,7 +430,7 @@ sub read_pid {
     chomp $line;
     return 0 unless $line;
 
-    unless ( looks_like_number( $line ) ) {
+    unless ( $line =~ m|^\d+$| ) {
         warn "ERROR: PID doesn't look like a number: $line";
         return 0;
     }

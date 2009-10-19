@@ -13,7 +13,7 @@ Proc::Launcher::Manager - spawn and manage multiple Proc::Launcher objects
 
 =head1 VERSION
 
-version 0.0.7
+version 0.0.8
 
 =head1 SYNOPSIS
 
