@@ -25,7 +25,7 @@ Proc::Launcher::Supervisor - restart watched processes that have exited
 
 =head1 VERSION
 
-version 0.0.8
+version 0.0.9
 
 =head1 DESCRIPTION
 
