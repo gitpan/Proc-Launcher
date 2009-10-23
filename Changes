@@ -1,5 +1,11 @@
 Revision history for Proc-Launcher
 
+0.0.10 Fri Oct 23, 2009  3:31 am
+
+  - Launcher tweaks
+    - if given class name + method name, load the class
+    - is_running returns name of running daemon, more consist with manager
+
 0.0.9 Thu Oct 22, 2009  9:12 pm
 
   - rework of the manager start/stop/restart API

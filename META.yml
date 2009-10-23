@@ -20,5 +20,6 @@ requires:
   POSIX: 0
   Pod::Usage: 0
   Test::More: 0
+  Time::HiRes: 0
   YAML: 0
-version: 0.0.9
+version: 0.0.10
