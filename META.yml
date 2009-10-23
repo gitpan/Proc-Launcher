@@ -22,4 +22,4 @@ requires:
   Test::More: 0
   Time::HiRes: 0
   YAML: 0
-version: 0.0.10
+version: 0.0.11

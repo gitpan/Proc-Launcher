@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.10';
+our $VERSION = '0.0.11';
 
 #_* Libraries
 
@@ -19,7 +19,7 @@ Proc::Launcher - yet another forking process controller
 
 =head1 VERSION
 
-version 0.0.10
+version 0.0.11
 
 =head1 SYNOPSIS
 
@@ -277,7 +277,7 @@ sub start {
             my $method = $self->start_method;
 
             my $class = $self->class;
-            eval "use $class"; ## no critic
+            eval "require $class"; ## no critic
 
             $self->class->new( context => $self->context )->$method( $args );
         }
