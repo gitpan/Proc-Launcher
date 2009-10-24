@@ -3,11 +3,12 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.11';
+our $VERSION = '0.0.12';
 
 #_* Libraries
 
 use File::Path;
+use File::Tail;
 use POSIX qw(setsid :sys_wait_h);
 
 #_* POD
@@ -19,7 +20,7 @@ Proc::Launcher - yet another forking process controller
 
 =head1 VERSION
 
-version 0.0.11
+version 0.0.12
 
 =head1 SYNOPSIS
 
@@ -200,7 +201,6 @@ has 'file_tail'    => ( is => 'ro',
                         isa => 'File::Tail',
                         lazy => 1,
                         default => sub {
-                            require File::Tail;
                             my $self = shift;
                             unless ( -r $self->log_file ) { system( 'touch', $self->log_file ) }
                             return File::Tail->new( name     => $self->log_file,

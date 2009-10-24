@@ -1,4 +1,5 @@
 Changes
+Debian_CPANTS.txt
 LICENSE
 MANIFEST
 META.yml
@@ -19,6 +20,7 @@ t/20_launcher_stubborn.t
 t/25_launcher_exec.t
 t/50_launch_manager.t
 t/critic.t
+t/kwalitee.t
 t/meta.t
 t/no_tabs.t
 t/release-pod-coverage.t
