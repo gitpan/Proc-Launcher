@@ -3,6 +3,9 @@ use strict;
 use warnings;
 use Mouse;
 
+our $VERSION = '0.0.13';
+
+
 use Carp;
 use File::Path;
 use Proc::Launcher;
@@ -13,7 +16,7 @@ Proc::Launcher::Manager - spawn and manage multiple Proc::Launcher objects
 
 =head1 VERSION
 
-version 0.0.12
+version 0.0.13
 
 =head1 SYNOPSIS
 

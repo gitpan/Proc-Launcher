@@ -3,7 +3,8 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.12';
+our $VERSION = '0.0.13';
+
 
 #_* Libraries
 
@@ -20,7 +21,7 @@ Proc::Launcher - yet another forking process controller
 
 =head1 VERSION
 
-version 0.0.12
+version 0.0.13
 
 =head1 SYNOPSIS
 
