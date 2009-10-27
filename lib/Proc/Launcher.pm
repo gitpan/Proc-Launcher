@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.15';
+our $VERSION = '0.0.16';
 
 
 #_* Libraries
@@ -21,7 +21,7 @@ Proc::Launcher - yet another forking process controller
 
 =head1 VERSION
 
-version 0.0.15
+version 0.0.16
 
 =head1 SYNOPSIS
 
@@ -264,7 +264,13 @@ sub start {
     }
     else {
         #chdir '/'                          or die "Can't chdir to /: $!";
-        close(STDIN);
+
+        # wu - ugly bug fix - when closing STDIN, it becomes free and
+        # may later get reused when calling open (resulting in error
+        # 'Filehandle STDIN reopened as $fh only for output'). :/ So
+        # instead of closing, we re-open to /dev/null.
+        open STDIN, '<', '/dev/null' or die "$!";
+
         open STDOUT, '>>', $self->log_file or die "Can't write stdout to $log: $!";
         open STDERR, '>>', $self->log_file or die "Can't write stderr to $log: $!";
         #setsid                             or die "Can't start a new session: $!";
@@ -493,10 +499,10 @@ sub write_pid {
 
     print "WRITING PID TO: $path\n" if $self->debug;
 
-    open(my $fh, ">", $path)
+    open(my $pid_fh, ">", $path)
         or die "Couldn't open $path for writing: $!\n";
-    print $fh $self->pid;
-    close $fh or die "Error closing file: $!\n";
+    print $pid_fh $self->pid;
+    close $pid_fh or die "Error closing file: $!\n";
 
 }
 

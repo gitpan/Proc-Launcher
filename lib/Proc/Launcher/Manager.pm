@@ -3,12 +3,14 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.15';
+our $VERSION = '0.0.16';
 
 
 use Carp;
 use File::Path;
+
 use Proc::Launcher;
+use Proc::Launcher::Supervisor;
 
 =head1 NAME
 
@@ -16,7 +18,7 @@ Proc::Launcher::Manager - spawn and manage multiple Proc::Launcher objects
 
 =head1 VERSION
 
-version 0.0.15
+version 0.0.16
 
 =head1 SYNOPSIS
 
@@ -56,9 +58,15 @@ version 0.0.15
 
     # start the process supervisor.  this will start up an event loop
     # and won't exit until it is killed.  any processes not already
-    # running will be started, and all processes will be monitored and
+    # running will be started.  all processes will be monitored and
     # automatically restarted if they exit.
-    $monitor->supervisor();
+    $monitor->supervisor->start();
+
+    # shut down/restart the supervisor
+    $monitor->supervisor->stop();
+    $monitor->supervisor->force_stop();
+    $monitor->supervisor->restart();
+
 
 =head1 DESCRIPTION
 
@@ -86,21 +94,41 @@ with 'Proc::Launcher::Roles::Launchable';
 
 #_* Attributes
 
-has 'debug'     => ( is => 'ro', isa => 'Bool', default => 0 );
+has 'debug'      => ( is         => 'ro',
+                      isa        => 'Bool',
+                      default    => 0 );
 
-has 'pid_dir'      => ( is => 'ro',
-                        isa => 'Str',
-                        lazy => 1,
-                        default => sub {
-                            my $dir = join "/", $ENV{HOME}, "logs";
-                            unless ( -d $dir ) {  mkpath( $dir ); }
-                            return $dir;
-                        },
-                    );
+has 'pid_dir'    => ( is         => 'ro',
+                      isa        => 'Str',
+                      lazy       => 1,
+                      default    => sub {
+                          my $dir = join "/", $ENV{HOME}, "logs";
+                          unless ( -d $dir ) {  mkpath( $dir ); }
+                          return $dir;
+                      },
+                  );
 
-has 'launchers' => ( is => 'rw',
-                     isa => 'HashRef[Proc::Launcher]',
-                 );
+has 'launchers'  => ( is         => 'rw',
+                      isa        => 'HashRef[Proc::Launcher]',
+                  );
+
+
+has 'supervisor' => ( is         => 'rw',
+                      isa        => 'Proc::Launcher::Supervisor',
+                      lazy       => 1,
+                      default    => sub {
+                          my $self = shift;
+
+                          return Proc::Launcher->new(
+                              daemon_name  => 'supervisor',
+                              pid_dir      => $self->pid_dir,
+                              start_method => sub {
+                                  Proc::Launcher::Supervisor->new( manager => $self )->monitor();
+                              },
+                          );
+                      },
+                  );
+
 
 #_* Methods
 
@@ -134,8 +162,6 @@ sub spawn {
 =item daemon( 'daemon_name' )
 
 Return the Proc::Launcher object for a specified daemon.
-
-See: http://en.wikipedia.org/wiki/Law_of_Demeter
 
 =cut
 
@@ -279,38 +305,6 @@ sub force_stop {
     }
 
     return 1;
-}
-
-=item supervisor()
-
-Launch a supervisor process that will poll all selected daemons at
-regular intervals and restart them in the event that they fail.
-
-Only one supervisor can be running at a time.  If you start a new
-supervisor process, it will replace the old one.
-
-=cut
-
-sub supervisor {
-    my ( $self, $options ) = @_;
-
-    $self->{supervisor}
-        = Proc::Launcher->new(
-            daemon_name  => 'supervisor',
-            pid_dir      => $self->pid_dir,
-            start_method => sub {
-                require Proc::Launcher::Supervisor;
-                Proc::Launcher::Supervisor->new()->monitor( $self );
-              },
-        );
-
-    print "Shutting down previously running supervisor\n";
-    $self->{supervisor}->force_stop();
-
-    sleep 1;
-
-    print "Starting a new supervisor\n";
-    $self->{supervisor}->start();
 }
 
 =item read_log()
