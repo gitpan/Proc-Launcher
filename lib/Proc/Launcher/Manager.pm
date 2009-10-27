@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.16';
+our $VERSION = '0.0.17';
 
 
 use Carp;
@@ -18,7 +18,7 @@ Proc::Launcher::Manager - spawn and manage multiple Proc::Launcher objects
 
 =head1 VERSION
 
-version 0.0.16
+version 0.0.17
 
 =head1 SYNOPSIS
 
@@ -96,7 +96,8 @@ with 'Proc::Launcher::Roles::Launchable';
 
 has 'debug'      => ( is         => 'ro',
                       isa        => 'Bool',
-                      default    => 0 );
+                      default    => 0,
+                  );
 
 has 'pid_dir'    => ( is         => 'ro',
                       isa        => 'Str',
