@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.17';
+our $VERSION = '0.0.18';
 
 
 has 'monitor_delay' => ( is       => 'rw',
@@ -38,12 +38,12 @@ Proc::Launcher::Supervisor - restart watched processes that have exited
 
 =head1 VERSION
 
-version 0.0.17
+version 0.0.18
 
 =head1 DESCRIPTION
 
 This is a tiny module that's designed for use with panctl and
-Proc::Launcher, where it is forked off and run as a separate process.
+L<Proc::Launcher>, where it is forked off and run as a separate process.
 
 =head1 ATTRIBUTES
 
@@ -56,21 +56,19 @@ that aren't running.  Defaults to 15.
 
 =item manager
 
-A Proc::Launcher::Manager object, with daemons already registered.
-The manager's start method will be called at regular intervals (see
-monitor_delay).
+A L<Proc::Launcher::Manager> object, with daemons already registered.
+The supervisor will call the manager's start method at regular
+intervals.  This will start any daemons that are not found running.
 
 =back
 
-=head1 SUBROUTINES/METHODS
+=head1 METHODS
 
 =over 8
 
 =item $obj->monitor()
 
-This tiny class contains only this one method.  It requires a
-reference to a Proc::Launcher::Manager object in order to determine
-information about that manager's daemons.
+This tiny class contains only this one method.
 
 It will repeatedly sleep for a configured period of time (default 15
 seconds), and then call start_all() on the manager object.  This will

@@ -10,7 +10,6 @@ meta-spec:
 name: Proc-Launcher
 requires:
   Carp: 0
-  ExtUtils::MakeMaker: 0
   File::Path: 0
   File::Tail: 0
   File::Temp: 0
@@ -22,4 +21,4 @@ requires:
   Pod::Usage: 0
   Test::More: 0
   YAML: 0
-version: 0.0.17
+version: 0.0.18

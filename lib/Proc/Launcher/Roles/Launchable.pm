@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse::Role;
 
-our $VERSION = '0.0.17';
+our $VERSION = '0.0.18';
 
 
 requires 'start';
@@ -27,7 +27,7 @@ Proc::Launcher::Roles::Launchable - defines an interface for launchers
 
 =head1 VERSION
 
-version 0.0.17
+version 0.0.18
 
 =head1 SYNOPSIS
 
@@ -39,13 +39,15 @@ version 0.0.17
 This role enforces a consistent API for the various 'Launcher'
 modules.  In the current project, that includes:
 
-  - Proc::Launcher - manage a single local process
-  - Proc::Launcher::Manager - manage multiple local processes
+- L<Proc::Launcher> - manage a single local process
+
+- L<Proc::Launcher::Manager> - manage multiple local processes
 
 Also under development are:
 
-  - GRID::Launcher - manage a single process on a remote node
-  - GRID::Launcher::Manager - manage one or more processes on one or more remote nodes
+- L<GRID::Launcher> - manage a single process on a remote node
+
+- L<GRID::Launcher::Manager> - manage one or more processes on one or more remote nodes
 
 
 =head1 LICENCE AND COPYRIGHT

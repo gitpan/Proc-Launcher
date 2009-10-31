@@ -4,6 +4,7 @@ MANIFEST
 META.yml
 Makefile.PL
 README
+Roadmap.org
 bin/panctl
 dist.ini
 lib/Proc/Launcher.pm
@@ -18,6 +19,7 @@ t/15_launcher_errorexit.t
 t/20_launcher_stubborn.t
 t/25_launcher_exec.t
 t/50_launch_manager.t
+t/60_disable_enable.t
 t/critic.t
 t/kwalitee.t
 t/meta.t

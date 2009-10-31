@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-our $VERSION = '0.0.17';
+our $VERSION = '0.0.18';
 
 
 use File::Path;
@@ -20,17 +20,19 @@ use Proc::Launcher::Manager;
 
 my %options;
 
-unless ( GetOptions ( '-start'      => \$options{start},
-                      '-stop'       => \$options{stop},
-                      '-restart'    => \$options{restart},
-                      '-force'      => \$options{force},
-                      '-supervisor' => \$options{supervisor},
-                      '-tail:i'     => \$options{tail},
-                      '-config'     => \$options{configfile},
-                      '-daemon=s'   => \$options{daemon},
-                      '-a|all'      => \$options{all},
-                      '-v|verbose!' => \$options{verbose},
-                      '-help|?'     => \$options{help},
+unless ( GetOptions ( '-start'       => \$options{start},
+                      '-stop'        => \$options{stop},
+                      '-restart'     => \$options{restart},
+                      '-force'       => \$options{force},
+                      '-supervisor'  => \$options{supervisor},
+                      '-tail:i'      => \$options{tail},
+                      '-config'      => \$options{configfile},
+                      '-d|daemon=s'  => \$options{daemon},
+                      '-a|all'       => \$options{all},
+                      '-e|enable'    => \$options{enable},
+                      '-dis|disable' => \$options{disable},
+                      '-v|verbose!'  => \$options{verbose},
+                      '-help|?'      => \$options{help},
     )
 ) { pod2usage( -exitval => 1, -verbose => 1 ) }
 
@@ -109,6 +111,14 @@ if ( $options{supervisor} ) {
     exit;
 }
 
+# enable/disable daemons
+if ( $options{disable} ) {
+    $monitor->disable();
+}
+elsif ( $options{enable} ) {
+    $monitor->enable();
+}
+
 ### daemons
 if ( $options{start} ) {
     $monitor->start();
@@ -149,7 +159,7 @@ __END__
 
 =head1 VERSION
 
-version 0.0.17
+version 0.0.18
 
 =head1 SYNOPSIS
 
@@ -182,11 +192,21 @@ Command line options:
     panctl -all -stop -force
     panctl -all -restart
 
-    # monitor the log files (tail -f) of all configured daemons
+    # monitor the log files (tail -f) of daemons
     panctl -all -tail
+    panctl -daemon ssh-foo -tail
+    panctl -daemon ssh -tail
+    panctl -daemon ssh -tail -start
 
     # start the supervisor process, restarts any daemons that fail
     panctl -all -supervisor
+
+    # disable/enable a daemon.  when disabled, the daemon will not
+    # start and will not be restarted by the supervisor.
+    panctl -d ssh-foo -disable
+    panctl -d ssh-foo -disable -stop
+    panctl -d ssh-foo -enable
+    panctl -d ssh-foo -enable -start
 
 
 
@@ -222,11 +242,25 @@ Selects all configured daemons.
 
 Combine with -start or -stop to start and stop the supervisor process.
 
+When daemons are selected (with the -daemon flag), the supervisor will
+only monitor the specified daemons.
+
+Note that only one supervisor can be running at a time!  If you start
+a supervisor for a selected daemon, and then start it again for a
+different selected daemon, only the latter will be supervised.
+
 =item -tail [timeout]
 
-Create a File::Tail for each daemon's stdout/stderr log file, and
-monitor it for the specified number of seconds.  If no timeout is
-specified, it will never halt.
+Create a File::Tail to display all selected daemons' stdout/stderr log
+files.  The effect is similar to running 'tail -f' on all the log
+files.
+
+If a timeout is specified (optional), the log files will only be
+monitored for the specified number of seconds.
+
+When combined with other options, e.g. -start, the log file will be
+opened before performing any operations, so the output you see will
+reflect the output of any operations you performed.
 
 =item -start
 
@@ -241,6 +275,24 @@ When combined with -force, will send a 'kill -9'
 =item -restart
 
 Calls stop() on the selected daemons, followed by start().
+
+=item -disable
+
+Calls disable() on selected daemons.  The daemon will no longer
+respond to start() until enable() is called.  If a supervisor is
+monitoring the daemon, it will no longer be restarted.
+
+Disabling a daemon does not stop any currently running processes.  Can
+be combined with the -stop option to immediately shut down the daemon
+if it's currently running.
+
+=item -enable
+
+Calls enable() on selected daemons.  If the daemon is disabled, it
+will be enabled.
+
+Enabling a daemon does not start it.  Can be combined with the -start
+option to immediately start the daemon if it's not already running.
 
 =back
 
@@ -267,10 +319,21 @@ Don't even try using this with apache.  While it is possible to make
 apache run in a non-daemonized mode, you probably don't want to do it
 that way.
 
+There is no log file maintenance.  If your daemons produce a lot of
+output, you will probably want to truncate the logs occasionally, e.g.:
+
+    echo >> ~/.panctl/daemon_name.log
+
+Alternately you could shut down the daemon, remove or gzip the log
+file, and then start the daemon back up.
 
 Patches are welcome.
 
 =head1 SEE ALSO
+
+  L<Proc::Launcher>
+  L<Proc::Launcher::Manager>
+  L<Proc::Launcher::Supervisor>
 
 
 =head1 AUTHOR

@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.17';
+our $VERSION = '0.0.18';
 
 
 use Carp;
@@ -18,7 +18,7 @@ Proc::Launcher::Manager - spawn and manage multiple Proc::Launcher objects
 
 =head1 VERSION
 
-version 0.0.17
+version 0.0.18
 
 =head1 SYNOPSIS
 
@@ -26,17 +26,21 @@ version 0.0.17
 
     my $shared_config = { x => 1, y => 2 };
 
-    my $monitor = Proc::Launcher::Manager->new( app_name  => 'MyApp',
-                                                    );
+    my $monitor = Proc::Launcher::Manager->new( app_name  => 'MyApp' );
 
+    # a couple of different components
     $monitor->spawn( daemon_name  => 'component1',
                      start_method => sub { MyApp->start_component1( $config ) }
                    );
     $monitor->spawn( daemon_name  => 'component2',
                      start_method => sub { MyApp->start_component2( $config ) }
                    );
+
+    # using class/method/context rather than a code ref
     $monitor->spawn( daemon_name  => 'webui',
-                     start_method => sub { MyApp->start_webui( $config ) }
+                     class        => 'MyApp::WebUI',
+                     start_method => 'start_webui',
+                     context      => $config,
                    );
 
     # start all registered daemons.  processes that are already
@@ -70,9 +74,9 @@ version 0.0.17
 
 =head1 DESCRIPTION
 
-This library makes it easier to deal with multiple Proc::Launcher
+This library makes it easier to deal with multiple L<Proc::Launcher>
 processes by providing methods to start and stop all daemons with a
-single command.  Please see the documentation in Proc::Launcher to
+single command.  Please see the documentation in L<Proc::Launcher> to
 understand how this these libraries differ from other similar forking
 and controller modules.
 
@@ -83,7 +87,7 @@ at any given time for each pid_dir.
 
 There is no tracking of inter-service dependencies nor predictable
 ordering of service startup.  Instead, daemons should be designed to
-wait for needed resources.  See Launcher::Cascade if you need to
+wait for needed resources.  See L<Launcher::Cascade> if you need to
 handle dependencies.
 
 =cut
@@ -133,13 +137,13 @@ has 'supervisor' => ( is         => 'rw',
 
 #_* Methods
 
-=head1 SUBROUTINES/METHODS
+=head1 METHODS
 
 =over 8
 
 =item spawn( %options )
 
-Create a new Proc::Launcher object with the specified options.  If
+Create a new L<Proc::Launcher> object with the specified options.  If
 the specified daemon already exists, no changes will be made.
 
 =cut
@@ -162,7 +166,7 @@ sub spawn {
 
 =item daemon( 'daemon_name' )
 
-Return the Proc::Launcher object for a specified daemon.
+Return the L<Proc::Launcher> object for a specified daemon.
 
 =cut
 
@@ -175,7 +179,7 @@ sub daemon {
 
 =item daemons()
 
-Return a list of Proc::Launcher objects.
+Return a list of L<Proc::Launcher> objects.
 
 =cut
 
@@ -303,6 +307,40 @@ sub force_stop {
     for my $daemon ( $self->daemons() ) {
         print "forcefully stopping daemon: ", $daemon->daemon_name, "\n";
         $daemon->force_stop();
+    }
+
+    return 1;
+}
+
+=item disable()
+
+Call the disable() method on all daemons.
+
+=cut
+
+sub disable {
+    my ( $self ) = @_;
+
+    for my $daemon ( $self->daemons() ) {
+        print "disabling daemon: ", $daemon->daemon_name, "\n";
+        $daemon->disable();
+    }
+
+    return 1;
+}
+
+=item enable()
+
+Call the enable() method on all daemons.
+
+=cut
+
+sub enable {
+    my ( $self ) = @_;
+
+    for my $daemon ( $self->daemons() ) {
+        print "enabling daemon: ", $daemon->daemon_name, "\n";
+        $daemon->enable();
     }
 
     return 1;
