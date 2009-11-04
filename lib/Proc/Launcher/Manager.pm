@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.18';
+our $VERSION = '0.0.19';
 
 
 use Carp;
@@ -14,11 +14,11 @@ use Proc::Launcher::Supervisor;
 
 =head1 NAME
 
-Proc::Launcher::Manager - spawn and manage multiple Proc::Launcher objects
+Proc::Launcher::Manager - manage multiple Proc::Launcher objects
 
 =head1 VERSION
 
-version 0.0.18
+version 0.0.19
 
 =head1 SYNOPSIS
 
@@ -29,18 +29,18 @@ version 0.0.18
     my $monitor = Proc::Launcher::Manager->new( app_name  => 'MyApp' );
 
     # a couple of different components
-    $monitor->spawn( daemon_name  => 'component1',
-                     start_method => sub { MyApp->start_component1( $config ) }
+    $monitor->register( daemon_name  => 'component1',
+                        start_method => sub { MyApp->start_component1( $config ) }
                    );
-    $monitor->spawn( daemon_name  => 'component2',
-                     start_method => sub { MyApp->start_component2( $config ) }
+    $monitor->register( daemon_name  => 'component2',
+                        start_method => sub { MyApp->start_component2( $config ) }
                    );
 
     # using class/method/context rather than a code ref
-    $monitor->spawn( daemon_name  => 'webui',
-                     class        => 'MyApp::WebUI',
-                     start_method => 'start_webui',
-                     context      => $config,
+    $monitor->register( daemon_name  => 'webui',
+                        class        => 'MyApp::WebUI',
+                        start_method => 'start_webui',
+                        context      => $config,
                    );
 
     # start all registered daemons.  processes that are already
@@ -80,10 +80,10 @@ single command.  Please see the documentation in L<Proc::Launcher> to
 understand how this these libraries differ from other similar forking
 and controller modules.
 
-It also provides a supervisor() method which will spawn a child daemon
-that will monitor the other daemons at regular intervals and restart
-any that have stopped.  Note that only one supervisor can be running
-at any given time for each pid_dir.
+It also provides a supervisor() method which will fork a daemon that
+will monitor the other daemons at regular intervals and restart any
+that have stopped.  Note that only one supervisor can be running at
+any given time for each pid_dir.
 
 There is no tracking of inter-service dependencies nor predictable
 ordering of service startup.  Instead, daemons should be designed to
@@ -141,14 +141,14 @@ has 'supervisor' => ( is         => 'rw',
 
 =over 8
 
-=item spawn( %options )
+=item register( %options )
 
 Create a new L<Proc::Launcher> object with the specified options.  If
 the specified daemon already exists, no changes will be made.
 
 =cut
 
-sub spawn {
+sub register {
     my ( $self, %options ) = @_;
 
     $options{pid_dir} = $self->pid_dir;
