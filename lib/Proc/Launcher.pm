@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.19';
+our $VERSION = '0.0.20';
 
 
 #_* Libraries
@@ -21,7 +21,7 @@ Proc::Launcher - yet another forking process controller
 
 =head1 VERSION
 
-version 0.0.19
+version 0.0.20
 
 =head1 SYNOPSIS
 
@@ -167,7 +167,7 @@ has 'debug'        => ( is => 'ro', isa => 'Bool', default => 0 );
 
 has 'daemon_name'  => ( is => 'ro', isa => 'Str', required => 1 );
 
-has 'context'      => ( is => 'ro' );
+has 'context'      => ( is => 'ro', default => sub { {} } );
 
 has 'class'        => ( is => 'ro', isa => 'Str' );
 # can be either a coderef, or if a class is specified, can be a string :/
@@ -219,9 +219,11 @@ has 'file_tail'    => ( is => 'ro',
                         default => sub {
                             my $self = shift;
                             unless ( -r $self->log_file ) { system( 'touch', $self->log_file ) }
-                            return File::Tail->new( name     => $self->log_file,
-                                                    nowait   => 1,
-                                                    interval => 1,
+                            return File::Tail->new( name        => $self->log_file,
+                                                    nowait      => 1,
+                                                    interval    => 1,
+                                                    maxinterval => 1,
+                                                    resetafter  => 600,
                                                 );
                         },
                     );
@@ -270,8 +272,8 @@ sub start {
     }
 
     if ( $self->is_running ) {
-        print "Already running, no start needed\n" if $self->debug;
-        return 1;
+        $self->_debug( "Already running, no start needed" );
+        return;
     }
 
     my $log = $self->log_file;
@@ -293,22 +295,48 @@ sub start {
 
         open STDOUT, '>>', $self->log_file or die "Can't write stdout to $log: $!";
         open STDERR, '>>', $self->log_file or die "Can't write stderr to $log: $!";
-        #setsid                             or die "Can't start a new session: $!";
+        setsid                             or die "Can't start a new session: $!";
         #umask 0;
 
-        print ">" x 77, "\n";
+        # this doesn't work on most platforms
+        $0 = $self->daemon_name;
+
+        print "\n\n", ">" x 77, "\n";
         print "Starting process: pid = $$: ", scalar localtime, "\n\n";
 
         # child
         if ( $self->class ) {
-            my $method = $self->start_method;
 
             my $class = $self->class;
+            print "Loading Class: $class\n";
             eval "require $class"; ## no critic
 
-            $self->class->new( context => $self->context )->$method( $args );
+            my $error = $@;
+            if ( $error ) {
+                die "ERROR LOADING $class: $error\n";
+            }
+            else {
+                print "Successfully loaded class\n";
+            }
+
+            print "Creating an instance of $class\n";
+            my $obj;
+            eval {                          # try
+                $obj = $class->new( context => $self->context );
+                1;
+            } or do {                       # catch
+                warn "ERROR: unable to create an instance: $@\n";
+                exit;
+            };
+            print "Created\n";
+
+            my $method = $self->start_method;
+            print "Calling method on instance: $method\n";
+
+            $obj->$method( $args );
         }
         else {
+            print "STARTING\n";
             $self->start_method->( $args );
         }
         exit;
@@ -327,30 +355,42 @@ sub stop {
     my ( $self ) = @_;
 
     if ( ! $self->is_running() ) {
-        print "Process not found running\n" if $self->debug;
+        $self->_debug( "Process not found running" );
         return 1;
     }
 
     my $pid = $self->pid;
 
-    print "Killing process: $pid\n" if $self->debug;
+    $self->_debug( "Killing process: $pid" );
     my $status = kill 1, $pid;
 
     return $status;
 }
 
-=item restart( $data )
+=item restart( $data, $sleep )
 
 Calls the stop() method, followed by the start() method, optionally
-passing some $data to the start() method.  This is pretty weak since
-it doesn't check the status of stop().
+passing some $data to the start() method.
+
+This method is not recommended since it doesn't check the status of
+stop().  Instead, call stop(), wait a bit, and then check that the
+process has shut down before trying to start it again.
+
+WARNING: this method calls sleep to allow a process to shut down
+before trying to start it again.  If sleep is set to 0, the child
+process won't have time to exit, and thus the start() method will
+never run.  As a result, this method is not recommended for use in a
+single-threaded cooperative multitasking environments such as POE.
 
 =cut
 
 sub restart {
-    my ( $self, $data ) = @_;
+    my ( $self, $data, $sleep ) = @_;
 
     $self->stop();
+
+    $sleep = $sleep ? $sleep : 1;
+    sleep $sleep;
 
     $self->start( $data );
 }
@@ -380,14 +420,14 @@ sub is_running {
     # are running.
     $self->rm_zombies();
 
-    print "CHECKING PID: ", $self->pid, "\n" if $self->debug;
+    $self->_debug( "CHECKING PID: " . $self->pid );
 
     if ( kill 0, $self->pid ) {
-        print "STILL RUNNING\n" if $self->debug;
+        $self->_debug( "STILL RUNNING" );
         return $self->daemon_name;
     }
 
-    print "PROCESS NOT RUNNING\n" if $self->debug;
+    $self->_debug( "PROCESS NOT RUNNING" );
 
     # process is not running, ensure the pidfile has been cleaned up
     $self->stopped();
@@ -434,11 +474,11 @@ sub force_stop {
     my ( $self ) = @_;
 
     if ( ! $self->is_running() ) {
-        print "Process not found running\n" if $self->debug;
+        $self->_debug( "Process not found running" );
         return 1;
     }
 
-    print "Process still running, executing with kill -9\n" if $self->debug;
+    $self->_debug( "Process still running, executing with kill -9" );
     my $status = kill 9, $self->pid;
 
     return $status;
@@ -456,7 +496,7 @@ be removed if it still exists.
 sub stopped {
     my ( $self ) = @_;
 
-    print "Process exited\n" if $self->debug;
+    $self->_debug( "Process exited" );
 
     # zero out the pid
     $self->pid( 0 );
@@ -484,7 +524,7 @@ sub read_pid {
         return 0;
     }
 
-    print "READING PID FROM: $path\n" if $self->debug;
+    $self->_debug( "READING PID FROM: $path" );
 
     open(my $fh, "<", $path)
         or die "Couldn't open $path for reading: $!\n";
@@ -517,7 +557,7 @@ sub write_pid {
 
     my $path = $self->pid_file;
 
-    print "WRITING PID TO: $path\n" if $self->debug;
+    $self->_debug( "WRITING PID TO: $path" );
 
     open(my $pid_fh, ">", $path)
         or die "Couldn't open $path for writing: $!\n";
@@ -540,7 +580,7 @@ sub remove_pidfile {
 
     return unless -r $self->pid_file;
 
-    print "REMOVING PIDFILE: ", $self->pid_file, "\n" if $self->debug;
+    $self->_debug( "REMOVING PIDFILE: " . $self->pid_file );
     unlink $self->pid_file;
 }
 
@@ -618,6 +658,17 @@ sub is_enabled {
     return 1;
 }
 
+# debugging output
+sub _debug {
+    my $self = shift;
+
+    return unless $self->debug;
+
+    for my $line ( @_ ) {
+        chomp $line;
+        print "$line\n";
+    }
+}
 
 no Mouse;
 

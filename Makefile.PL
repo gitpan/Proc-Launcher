@@ -9,7 +9,7 @@ WriteMakefile(
   NAME      => 'Proc::Launcher',
   AUTHOR    => 'Alex\ White\ \<VVu\@geekfarm\.org\>',
   ABSTRACT  => 'yet\ another\ forking\ process\ controller',
-  VERSION   => '0.0.19',
+  VERSION   => '0.0.20',
   EXE_FILES => [ qw(bin/panctl) ],
   (eval { ExtUtils::MakeMaker->VERSION(6.31) } ? (LICENSE => 'bsd') : ()),
   PREREQ_PM    => {

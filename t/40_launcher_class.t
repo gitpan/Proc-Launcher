@@ -1,10 +1,12 @@
 #!/perl
 use strict;
 
+package main;
+
 use Proc::Launcher;
 
 use File::Temp qw/ :POSIX /;
-use Test::More tests => 5;
+use Test::More tests => 4;
 
 use lib "t/lib";
 
@@ -12,10 +14,13 @@ my ($fh, $file) = tmpnam();
 close $fh;
 unlink $file;
 
+my $context = { sleep => 1 };
+
 my $launcher = Proc::Launcher->new( class        => 'TestApp',
                                     start_method => 'runme',
                                     daemon_name  => 'test',
                                     pid_file     => $file,
+                                    context      => $context,
                                 );
 
 ok( ! $launcher->is_running(),
@@ -26,19 +31,16 @@ ok( $launcher->start(),
     "Starting the test process"
 );
 
-sleep 1;
-
 ok( $launcher->is_running(),
     "Checking that process was started successfully"
 );
 
-ok( $launcher->stop(),
-    "Calling 'stop' method"
-);
-
-sleep 1;
+sleep 2;
 
 ok( ! $launcher->is_running(),
-    "Checking that 'stop' successfully shut down the process"
+    "Checking that process exited successfully after 1 second, as set in context"
 );
+
+# in case the process was still running, shut it down now!
+$launcher->force_stop();
 

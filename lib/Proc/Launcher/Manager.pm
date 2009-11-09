@@ -3,11 +3,12 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.19';
+our $VERSION = '0.0.20';
 
 
 use Carp;
 use File::Path;
+use POSIX qw(:sys_wait_h);
 
 use Proc::Launcher;
 use Proc::Launcher::Supervisor;
@@ -18,7 +19,7 @@ Proc::Launcher::Manager - manage multiple Proc::Launcher objects
 
 =head1 VERSION
 
-version 0.0.19
+version 0.0.20
 
 =head1 SYNOPSIS
 
@@ -234,6 +235,11 @@ sub is_running {
 
     my @daemon_names = $self->daemons_names();
 
+    unless ( scalar @daemon_names ) {
+        print "is_running() called when no daemons registered\n";
+        return;
+    }
+
     # clean up deceased child processes before checking if processes
     # are running.
     $self->daemon($daemon_names[0])->rm_zombies();
@@ -266,6 +272,8 @@ already running it will not be restarted.
 sub start {
     my ( $self, $data ) = @_;
 
+    my $started;
+
     for my $daemon ( $self->daemons() ) {
         if ( $daemon->is_running() ) {
             print "daemon already running: ", $daemon->daemon_name, "\n";
@@ -273,8 +281,11 @@ sub start {
         else {
             print "starting daemon: ", $daemon->daemon_name, "\n";
             $daemon->start();
+            $started++;
         }
     }
+
+    return $started;
 }
 
 
@@ -407,6 +418,8 @@ sub tail {
             }
         }
         else {
+            # if we spawned any child procs, reap any that died
+            waitpid(-1, WNOHANG);
             sleep 1;
         }
 
@@ -415,6 +428,8 @@ sub tail {
             last if time > $end;
         }
     }
+
+    return 1;
 }
 
 
