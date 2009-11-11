@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.22';
+our $VERSION = '0.0.23';
 
 
 #_* Libraries
@@ -21,7 +21,7 @@ Proc::Launcher - yet another forking process controller
 
 =head1 VERSION
 
-version 0.0.22
+version 0.0.23
 
 =head1 SYNOPSIS
 
@@ -589,15 +589,11 @@ sub write_pid {
     return if -r $self->pid_file;
 
     # atomic operation
-    if ( rename $path, $self->pid_file ) {
-        return 1;
+    unless ( rename $path, $self->pid_file ) {
+        return;
     }
 
-    unless ( $self->read_pid() == $self->pid ) {
-        die "ERROR: wrote our pid to the pidfile, but now there's a different pid there!";
-    }
-
-    return;
+    return 1;
 }
 
 =item remove_pidfile
