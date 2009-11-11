@@ -28,6 +28,7 @@ t/51_launch_manager_noregister.t
 t/52_launch_tail.t
 t/60_disable_enable.t
 t/70_pidfile.t
+t/80_launcher_locking.t
 t/critic.t
 t/kwalitee.t
 t/lib/TestApp.pm
