@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.21';
+our $VERSION = '0.0.22';
 
 
 #_* Libraries
@@ -21,7 +21,7 @@ Proc::Launcher - yet another forking process controller
 
 =head1 VERSION
 
-version 0.0.21
+version 0.0.22
 
 =head1 SYNOPSIS
 
@@ -278,19 +278,24 @@ sub start {
 
     my $log = $self->log_file;
 
-    if ( my $pid = fork ) {
-        # parent
+    if ( my $pid = fork ) {    # PARENT
+
+        # set the pid of the launched process
         $self->pid( $pid );
-        if ( $self->write_pid() ) {
-            print "LAUNCHED CHILD PROCESS: pid=$pid log=$log\n";
-            return 1;
-        }
-        else {
-            print "CHILD PROCESS ALREADY RUNNING\n";
-            return;
-        }
+
+        print "LAUNCHED CHILD PROCESS: pid=$pid log=$log\n";
+        return 1;
+
     }
-    else {
+    else {                     # CHILD
+
+        # set the pid in the child process
+        $self->pid( $$ );
+        unless ( $self->write_pid() ) {
+            print "CHILD PROCESS ALREADY RUNNING\n";
+            exit 1;
+        }
+
         #chdir '/'                          or die "Can't chdir to /: $!";
 
         # wu - ugly bug fix - when closing STDIN, it becomes free and
