@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.23';
+our $VERSION = '0.0.24';
 
 
 #_* Libraries
@@ -21,7 +21,7 @@ Proc::Launcher - yet another forking process controller
 
 =head1 VERSION
 
-version 0.0.23
+version 0.0.24
 
 =head1 SYNOPSIS
 
@@ -76,7 +76,7 @@ stdout/stderr/stdin of the children are not directly connected to the
 launching process.  All stdout and stderr from the child processes is
 written to a log file.
 
-For more useful functions (e.g. a supervisor to restart the process that
+For more useful functions (e.g. a supervisor to restart processes that
 die), see L<Proc::Launcher::Manager>.
 
 =head1 RELATED WORK
@@ -134,7 +134,7 @@ be modified to be daemonized.
 
 This library does not use or require an event loop (e.g. AnyEvent,
 POE, etc.), but is fully usable from with an event loop since objects
-of this class never call sleep() (doing so inside a single-threaded
+of this class avoid calling sleep() (doing so inside a single-threaded
 event loop causes everything else running in the event loop to wait).
 This does mean that methods such as stop() will return immediately
 without providing a status.  See more about this in the note below in
@@ -163,15 +163,75 @@ with 'Proc::Launcher::Roles::Launchable';
 
 #_* Attributes
 
-has 'debug'        => ( is => 'ro', isa => 'Bool', default => 0 );
+=head1 CONSTRUCTOR OPTIONS
+
+The constructor supports the following options, e.g.:
+
+  my $launcher = Proc::Launcher->new( debug => 1, ... );
+
+Each of these attributes will also have a getter, e.g.:
+
+  if ( $launcher->debug ) { print "DEBUGGING ENABLED!\n" }
+
+All attributes are read-only unless otherwise specified.  Read/write
+attributes may be set like so:
+
+  $launcher->debug( 1 );
+
+=over 8
+
+=item debug => 0
+
+Enable debugging messages to STDOUT.  This attribute is read/write.
+
+=cut
+
+has 'debug'        => ( is => 'rw', isa => 'Bool', default => 0 );
+
+=item daemon_name => 'somename'
+
+Specify the name of the daemon.  This will be used as the prefix for
+the log file, pid file, etc.
+
+=cut
 
 has 'daemon_name'  => ( is => 'ro', isa => 'Str', required => 1 );
 
+=item context => $data
+
+Context data to be passed to the forked processes.  This could be any
+complex data structure and may contain things like configuration data.
+
+=cut
+
 has 'context'      => ( is => 'ro', default => sub { {} } );
 
+=item class => 'My::App'
+
+Name of the class where the start method is located.  An object of
+this class will be created, passing in your context data.  Then the
+start_method will be called on the object.
+
+=cut
+
 has 'class'        => ( is => 'ro', isa => 'Str' );
-# can be either a coderef, or if a class is specified, can be a string :/
+
+=item start_method => 'start_me'
+
+If a class is specified, this is the name of the start method in that
+class.
+
+If no class is specified, this must be a subroutine reference.
+
+=cut
+
 has 'start_method' => ( is => 'ro', required => 1 );
+
+=item pid_dir => "$ENV{HOME}/logs"
+
+Specify the directory where the pid file should live.
+
+=cut
 
 has 'pid_dir'      => ( is => 'ro',
                         isa => 'Str',
@@ -183,6 +243,12 @@ has 'pid_dir'      => ( is => 'ro',
                         },
                     );
 
+=item pid_file => "$pid_dir/$daemon_name.pid"
+
+Name of the pid file.
+
+=cut
+
 has 'pid_file'     => ( is => 'ro',
                         isa => 'Str',
                         lazy => 1,
@@ -193,6 +259,13 @@ has 'pid_file'     => ( is => 'ro',
                         },
                     );
 
+=item disable_file => "$pid_dir/$daemon_name.disabled"
+
+Location to the 'disable' file.  If this file exists, the daemon will
+not be started when start() is called.
+
+=cut
+
 has 'disable_file' => ( is => 'ro',
                         isa => 'Str',
                         lazy => 1,
@@ -202,6 +275,13 @@ has 'disable_file' => ( is => 'ro',
                             return join "/", $self->pid_dir, "$daemon.disabled";
                         },
                     );
+
+=item log_file => "$pid_dir/$daemon_name.log"
+
+Path to the daemon log file.  The daemon process will have both stdout
+and stderr redirected to this log file.
+
+=cut
 
 has 'log_file'     => ( is => 'ro',
                         isa => 'Str',
@@ -228,6 +308,7 @@ has 'file_tail'    => ( is => 'ro',
                         },
                     );
 
+# private, don't set this
 has 'pid'          => ( is => 'rw',
                         isa => 'Int',
                         lazy => 1,
@@ -237,7 +318,39 @@ has 'pid'          => ( is => 'rw',
                         },
                     );
 
+=item pipe => 0
+
+If set to true, specifies that the forked process should create a
+named pipe.  The forked process can then read from the named pipe on
+STDIN.  If your forked process does not read from and process STDIN,
+then there's no use in enabling this option.
+
+=cut
+
+has 'pipe'         => ( is => 'ro',
+                        isa => 'Bool',
+                        default => 0,
+                    );
+
+=item pipe_file => "$pid_dir/$daemon_name.cmd"
+
+Path to the named pipe.
+
+=cut
+
+has 'pipe_file'    => ( is => 'ro',
+                        isa => 'Str',
+                        lazy => 1,
+                        default => sub {
+                            my $self = shift;
+                            my $daemon = $self->daemon_name;
+                            return join "/", $self->pid_dir, "$daemon.cmd";
+                        },
+                    );
+
 #_* Methods
+
+=back
 
 =head1 METHODS
 
@@ -259,7 +372,9 @@ pick up the new data, you must stop the child process and then start a
 new process with a copy of the new data.
 
 If the process is found already running, then the method will
-immediately return success.
+immediately return null.  If a process was successfully forked,
+success will be returned.  Success does not imply that the daemon was
+started successfully--for that, check is_running().
 
 =cut
 
@@ -301,19 +416,31 @@ sub start {
         # wu - ugly bug fix - when closing STDIN, it becomes free and
         # may later get reused when calling open (resulting in error
         # 'Filehandle STDIN reopened as $fh only for output'). :/ So
-        # instead of closing, we re-open to /dev/null.
-        open STDIN, '<', '/dev/null' or die "$!";
+        # instead of closing, just re-open to /dev/null.
+        open STDIN, '<', '/dev/null'       or die "$!";
 
         open STDOUT, '>>', $self->log_file or die "Can't write stdout to $log: $!";
         open STDERR, '>>', $self->log_file or die "Can't write stderr to $log: $!";
+
         setsid                             or die "Can't start a new session: $!";
+
         #umask 0;
 
         # this doesn't work on most platforms
-        $0 = $self->daemon_name;
+        $0 = join " - ", "perl", "Proc::Launcher", $self->daemon_name;
 
         print "\n\n", ">" x 77, "\n";
         print "Starting process: pid = $$: ", scalar localtime, "\n\n";
+
+        if ( $self->pipe ) {
+            my $named_pipe = $self->pipe_file;
+            print "CREATING NAMED PIPE: $named_pipe\n";
+            unless (-p $named_pipe) {
+                unlink $named_pipe;
+                POSIX::mkfifo( $named_pipe, 0700) or die "can't mkfifo $named_pipe: $!"; ## no critic - leading zero
+            }
+            open STDIN, '<', $named_pipe or die "$!";
+        }
 
         # child
         if ( $self->class ) {
@@ -350,6 +477,11 @@ sub start {
             print "STARTING\n";
             $self->start_method->( $args );
         }
+
+        # cleanup
+        print "EXITED\n";
+        $self->stopped();
+
         exit;
     }
 }
@@ -371,7 +503,7 @@ sub stop {
     my $pid = $self->pid;
 
     $self->_debug( "Killing process: $pid" );
-    my $status = kill 1, $pid;
+    my $status = kill 1 => $pid;
 
     return $status;
 }
@@ -432,9 +564,17 @@ sub is_running {
 
     $self->_debug( "CHECKING PID: $pid" );
 
-    if ( kill 0, $pid ) {
-        $self->_debug( "STILL RUNNING" );
-        return $self->daemon_name;
+    if ( kill 0 => $pid ) {
+        if ( $!{EPERM} ) {
+            # if process id isn't owned by us, it is assumed to have
+            # been recycled, i.e. our process died and the process id
+            # was assigned to another process.
+            $self->_debug( "Process id active but owned by someone else" );
+        }
+        else {
+            $self->_debug( "STILL RUNNING" );
+            return $self->daemon_name;
+        }
     }
 
     $self->_debug( "PROCESS NOT RUNNING" );
@@ -457,15 +597,9 @@ NOTE: Normally this is called when the is_running() method is called
 active).  This is where the abstraction gets a bit leaky.  After
 stopping a daemon, if you always call is_running() until you get a
 false response (i.e. the process has successfully stopped), then
-everything will work cleanly and you can be sure any zombies and pid
-files have been removed.  If you don't call is_running() until
-successful shutdown has been detected, then you may leave zombies or
-pid files around.  The pid files are never removed until the process
-has shut down cleanly, so any process left in a zombie state will
-leave vestigial pid files.  In short, all this can be avoided by
-ensuring that any time you shut down a daemon, you always call
-is_running() until the process has shut down.
-
+everything will work cleanly and you can be sure any zombies have been
+reaped.  If you don't call is_running() until successful shutdown has
+been detected, then you may create zombies.
 
 =cut
 
@@ -489,7 +623,7 @@ sub force_stop {
     }
 
     $self->_debug( "Process still running, executing with kill -9" );
-    my $status = kill 9, $self->pid;
+    my $status = kill 9 => $self->pid;
 
     return $status;
 }
@@ -514,6 +648,8 @@ sub stopped {
     # remove the pidfile
     $self->remove_pidfile();
 
+    # remove the named pipe if one was enabled
+    if ( $self->pipe ) { unlink $self->pipe_file }
 }
 
 =item read_pid()
@@ -639,6 +775,31 @@ sub read_log {
     return 1;
 }
 
+=item write_pipe( $string )
+
+Write text to the process's named pipe.  The child can then read this
+data from it's STDIN.
+
+Simply returns false if a named pipe was not enabled.
+
+=cut
+
+sub write_pipe {
+    my ( $self, $string ) = @_;
+
+    return unless $self->pipe;
+
+    return unless -r $self->pipe_file;
+
+    # remove any trailing whitespace
+    chomp $string;
+
+    # blast the string out to the named pipe
+    print { sysopen (my $fh , $self->pipe_file, &POSIX::O_WRONLY) or die "$!\n"; $fh } $string, "\n";
+
+    return 1;
+}
+
 =item disable()
 
 Create the disable flag file unless it already exists.
@@ -747,15 +908,6 @@ L<http://cpants.perl.org/dist/overview/Proc-Launcher>
 L<http://cpanratings.perl.org/d/Proc-Launcher>
 
 =back
-
-=head1 LIMITATIONS
-
-Currently no locking is being performed so multiple controlling
-processes running at the same time could potentially conflict.  For
-example, both controlling processes might be trying to start the
-daemon at the same time.  A fix for this is planned.
-
-
 
 =head1 LICENCE AND COPYRIGHT
 

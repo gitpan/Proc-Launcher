@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.23';
+our $VERSION = '0.0.24';
 
 
 has 'monitor_delay' => ( is       => 'rw',
@@ -18,6 +18,8 @@ has 'manager'       => ( is       => 'rw',
 
 sub monitor {
     my ( $self ) = @_;
+
+    sleep 5;
 
     while ( 1 ) {
         $self->manager->start();
@@ -38,7 +40,7 @@ Proc::Launcher::Supervisor - restart watched processes that have exited
 
 =head1 VERSION
 
-version 0.0.23
+version 0.0.24
 
 =head1 DESCRIPTION
 

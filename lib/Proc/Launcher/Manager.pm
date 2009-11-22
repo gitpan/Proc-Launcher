@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.23';
+our $VERSION = '0.0.24';
 
 
 use Carp;
@@ -19,7 +19,7 @@ Proc::Launcher::Manager - manage multiple Proc::Launcher objects
 
 =head1 VERSION
 
-version 0.0.23
+version 0.0.24
 
 =head1 SYNOPSIS
 
@@ -160,7 +160,9 @@ sub register {
     }
 
     # just capturing the position of the tail end of the log file
-    $self->read_log( undef, $daemon );
+    if ( $options{output_callback} ) {
+        $self->read_log( $options{output_callback}, $daemon );
+    }
 
     $self->{daemons}->{ $options{daemon_name} } = $daemon;
 }
