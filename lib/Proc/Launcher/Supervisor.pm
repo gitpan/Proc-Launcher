@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.25';
+our $VERSION = '0.0.26';
 
 
 has 'monitor_delay' => ( is       => 'rw',
@@ -40,7 +40,7 @@ Proc::Launcher::Supervisor - restart watched processes that have exited
 
 =head1 VERSION
 
-version 0.0.25
+version 0.0.26
 
 =head1 DESCRIPTION
 
