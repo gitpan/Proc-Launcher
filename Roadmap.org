@@ -1,3 +1,10 @@
+* never cache pid in GRID::Launcher
+
+  - always go back to read the pid file
+
+  - child may have been killed and restarted by another launcher
+
+
 * manager method to get child status hash
 
   - for each selected daemons

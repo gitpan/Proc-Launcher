@@ -2,7 +2,7 @@
 abstract: 'yet another forking process controller'
 author:
   - 'Alex White <VVu@geekfarm.org>'
-generated_by: 'Dist::Zilla version 1.092680'
+generated_by: 'Dist::Zilla version 1.093280'
 license: bsd
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -23,4 +23,4 @@ requires:
   Pod::Usage: 0
   Test::More: 0
   YAML: 0
-version: 0.0.24
+version: 0.0.25
