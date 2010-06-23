@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse::Role;
 
-our $VERSION = '0.0.26';
+our $VERSION = '0.0.28';
 
 
 requires 'start';
@@ -27,7 +27,7 @@ Proc::Launcher::Roles::Launchable - defines an interface for launchers
 
 =head1 VERSION
 
-version 0.0.26
+version 0.0.28
 
 =head1 SYNOPSIS
 

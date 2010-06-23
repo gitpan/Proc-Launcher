@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.26';
+our $VERSION = '0.0.28';
 
 
 use Carp;
@@ -19,7 +19,7 @@ Proc::Launcher::Manager - manage multiple Proc::Launcher objects
 
 =head1 VERSION
 
-version 0.0.26
+version 0.0.28
 
 =head1 SYNOPSIS
 
@@ -120,7 +120,6 @@ has 'launchers'  => ( is         => 'rw',
 
 
 has 'supervisor' => ( is         => 'rw',
-                      isa        => 'Proc::Launcher::Supervisor',
                       lazy       => 1,
                       default    => sub {
                           my $self = shift;
@@ -160,9 +159,7 @@ sub register {
     }
 
     # just capturing the position of the tail end of the log file
-    if ( $options{output_callback} ) {
-        $self->read_log( $options{output_callback}, $daemon );
-    }
+    $self->read_log( undef, $daemon );
 
     $self->{daemons}->{ $options{daemon_name} } = $daemon;
 }

@@ -9,6 +9,7 @@ bin/panctl
 devel-cover.txt
 dist.ini
 lib/Proc/Launcher.pm
+lib/Proc/Launcher.pm.closefh
 lib/Proc/Launcher/Manager.pm
 lib/Proc/Launcher/Roles/Launchable.pm
 lib/Proc/Launcher/Supervisor.pm
