@@ -25,4 +25,4 @@ requires:
   YAML: 0
 resources:
   repository: http://github.com/wu/Proc-Launcher
-version: 0.0.28
+version: 0.0.29
