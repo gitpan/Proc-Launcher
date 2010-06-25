@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Mouse;
 
-our $VERSION = '0.0.29';
+our $VERSION = '0.0.30';
 
 
 use Carp;
@@ -19,7 +19,7 @@ Proc::Launcher::Manager - manage multiple Proc::Launcher objects
 
 =head1 VERSION
 
-version 0.0.29
+version 0.0.30
 
 =head1 SYNOPSIS
 

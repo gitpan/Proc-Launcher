@@ -13,6 +13,7 @@ lib/Proc/Launcher.pm.closefh
 lib/Proc/Launcher/Manager.pm
 lib/Proc/Launcher/Roles/Launchable.pm
 lib/Proc/Launcher/Supervisor.pm
+mask.png
 perl-metrics-simple.txt
 t/00.load.t
 t/10_launcher_sleeper.t

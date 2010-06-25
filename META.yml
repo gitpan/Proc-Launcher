@@ -10,7 +10,6 @@ meta-spec:
 name: Proc-Launcher
 requires:
   Carp: 0
-  ExtUtils::MakeMaker: 0
   File::Path: 0
   File::Tail: 0
   File::Temp: 0
@@ -25,4 +24,4 @@ requires:
   YAML: 0
 resources:
   repository: http://github.com/wu/Proc-Launcher
-version: 0.0.29
+version: 0.0.30
