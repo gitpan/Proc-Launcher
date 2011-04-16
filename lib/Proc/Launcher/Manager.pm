@@ -1,10 +1,10 @@
 package Proc::Launcher::Manager;
 use strict;
 use warnings;
+
+our $VERSION = '0.0.31'; # VERSION
+
 use Mouse;
-
-our $VERSION = '0.0.30';
-
 
 use Carp;
 use File::Path;
@@ -19,7 +19,7 @@ Proc::Launcher::Manager - manage multiple Proc::Launcher objects
 
 =head1 VERSION
 
-version 0.0.30
+version 0.0.31
 
 =head1 SYNOPSIS
 

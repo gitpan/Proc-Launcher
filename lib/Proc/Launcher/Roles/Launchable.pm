@@ -1,10 +1,10 @@
 package Proc::Launcher::Roles::Launchable;
 use strict;
 use warnings;
+
+our $VERSION = '0.0.31'; # VERSION
+
 use Mouse::Role;
-
-our $VERSION = '0.0.30';
-
 
 requires 'start';
 requires 'stop';
@@ -27,7 +27,7 @@ Proc::Launcher::Roles::Launchable - defines an interface for launchers
 
 =head1 VERSION
 
-version 0.0.30
+version 0.0.31
 
 =head1 SYNOPSIS
 

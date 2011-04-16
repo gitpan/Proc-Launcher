@@ -1,10 +1,10 @@
 package Proc::Launcher;
 use strict;
 use warnings;
+
+our $VERSION = '0.0.31'; # VERSION
+
 use Mouse;
-
-our $VERSION = '0.0.30';
-
 
 #_* Libraries
 
@@ -21,7 +21,7 @@ Proc::Launcher - yet another forking process controller
 
 =head1 VERSION
 
-version 0.0.30
+version 0.0.31
 
 =head1 SYNOPSIS
 
@@ -388,15 +388,43 @@ sub start {
 
         print "LAUNCHED CHILD PROCESS: pid=$pid log=$log\n";
 
-        unless ( $self->write_my_pid( $pid ) ) {
-            print "CHILD PROCESS ALREADY RUNNING\n";
-            exit 1;
+      CHECK_PID:
+        for ( 1 .. 5 ) {
+
+            $self->_debug( "Checking if our child locked the pidfile" );
+
+            # attempt to read the pidfile
+            my $locked_pid = $self->pid();
+
+            $self->_debug( "Got locked pid: $locked_pid" );
+
+            # check if the pidfile is locked by a valid process
+            if ( $locked_pid && $self->is_running( $pid ) ) {
+
+                $self->_debug( "Pid is running: $pid" );
+
+                # check if the pid that has the lock is our child process
+                if ( $locked_pid == $pid ) {
+
+                    $self->_debug( "Locked pid is our child pid: $pid" );
+                    return $pid;
+                }
+                else {
+                    $self->_debug( "Locked pid is NOT our child pid: $pid" );
+                    print "CHILD PROCESS ALREADY RUNNING\n";
+                    return;
+                }
+            }
+
+            sleep 1;
         }
-
-        return $pid;
-
     }
     else {                     # CHILD
+
+        unless ( $self->write_my_pid( $$ ) ) {
+            $self->_debug( "CHILD FAILED TO LOCK PIDFILE: $pid" );
+            exit 1;
+        }
 
         #chdir '/'                          or die "Can't chdir to /: $!";
 
@@ -720,12 +748,18 @@ sub write_my_pid {
 
     # if some other process has created a pidfile since we last
     # checked, then it won and we lost
-    return if -r $self->pid_file;
+    if ( -r $self->pid_file ) {
+        $self->_debug( "Pidfile already created by another process" );
+        return
+    }
 
     # atomic operation
     unless ( rename $path, $self->pid_file ) {
+        $self->_debug( "Unable to lock pidfile $path for $pid" );
         return;
     }
+
+    $self->_debug( "Successfully renamed pidfile to $path: $pid" );
 
     return 1;
 }
@@ -849,11 +883,11 @@ sub is_enabled {
 
 # debugging output
 sub _debug {
-    my $self = shift;
+    my ( $self, @lines ) = @_;
 
     return unless $self->debug;
 
-    for my $line ( @_ ) {
+    for my $line ( @lines ) {
         chomp $line;
         print "$line\n";
     }

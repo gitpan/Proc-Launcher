@@ -13,7 +13,6 @@ lib/Proc/Launcher.pm.closefh
 lib/Proc/Launcher/Manager.pm
 lib/Proc/Launcher/Roles/Launchable.pm
 lib/Proc/Launcher/Supervisor.pm
-mask.png
 perl-metrics-simple.txt
 t/00.load.t
 t/10_launcher_sleeper.t
@@ -32,7 +31,7 @@ t/60_disable_enable.t
 t/70_pidfile.t
 t/80_launcher_locking.t
 t/90_launcher_named_pipe.t
-t/critic.t
+t/author-critic.t
 t/kwalitee.t
 t/lib/TestApp.pm
 t/meta.t

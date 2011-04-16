@@ -2,31 +2,60 @@
 use strict;
 use warnings;
 
-use ExtUtils::MakeMaker;
 
-WriteMakefile(
-  DISTNAME  => 'Proc-Launcher',
-  NAME      => 'Proc::Launcher',
-  AUTHOR    => 'Alex\ White\ \<VVu\@geekfarm\.org\>',
-  ABSTRACT  => 'yet\ another\ forking\ process\ controller',
-  VERSION   => '0.0.30',
-  EXE_FILES => [ qw(bin/panctl) ],
-  (eval { ExtUtils::MakeMaker->VERSION(6.31) } ? (LICENSE => 'bsd') : ()),
-  PREREQ_PM    => {
-    "Getopt::Long" => '0',
-    "YAML" => '0',
-    "IO::File" => '0',
-    "FindBin" => '0',
-    "Pod::Usage" => '0',
-    "Mouse::Role" => '0',
-    "Carp" => '0',
-    "Test::More" => '0',
-    "POSIX" => '0',
-    "File::Tail" => '0',
-    "Mouse" => '0',
-    "File::Temp" => '0',
-    "File::Path" => '0',
+
+use ExtUtils::MakeMaker 6.31;
+
+
+
+my %WriteMakefileArgs = (
+  'ABSTRACT' => 'yet another forking process controller',
+  'AUTHOR' => 'Alex White <VVu@geekfarm.org>',
+  'BUILD_REQUIRES' => {
+    'English' => '0',
+    'File::Temp' => '0',
+    'IO::File' => '0',
+    'Test::More' => '0'
   },
-  test => {TESTS => 't/*.t'}
+  'CONFIGURE_REQUIRES' => {
+    'ExtUtils::MakeMaker' => '6.31'
+  },
+  'DISTNAME' => 'Proc-Launcher',
+  'EXE_FILES' => [],
+  'LICENSE' => 'bsd',
+  'NAME' => 'Proc::Launcher',
+  'PREREQ_PM' => {
+    'Carp' => '0',
+    'File::Path' => '0',
+    'File::Tail' => '0',
+    'Mouse' => '0',
+    'Mouse::Role' => '0',
+    'POSIX' => '0'
+  },
+  'VERSION' => '0.0.31',
+  'test' => {
+    'TESTS' => 't/*.t'
+  }
 );
+
+
+unless ( eval { ExtUtils::MakeMaker->VERSION(6.56) } ) {
+  my $br = delete $WriteMakefileArgs{BUILD_REQUIRES};
+  my $pp = $WriteMakefileArgs{PREREQ_PM};
+  for my $mod ( keys %$br ) {
+    if ( exists $pp->{$mod} ) {
+      $pp->{$mod} = $br->{$mod} if $br->{$mod} > $pp->{$mod};
+    }
+    else {
+      $pp->{$mod} = $br->{$mod};
+    }
+  }
+}
+
+delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
+  unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
+
+WriteMakefile(%WriteMakefileArgs);
+
+
 
