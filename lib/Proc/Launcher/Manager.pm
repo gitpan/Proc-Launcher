@@ -2,7 +2,7 @@ package Proc::Launcher::Manager;
 use strict;
 use warnings;
 
-our $VERSION = '0.0.32'; # VERSION
+our $VERSION = '0.0.33'; # VERSION
 
 use Mouse;
 
@@ -19,7 +19,7 @@ Proc::Launcher::Manager - manage multiple Proc::Launcher objects
 
 =head1 VERSION
 
-version 0.0.32
+version 0.0.33
 
 =head1 SYNOPSIS
 

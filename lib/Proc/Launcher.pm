@@ -2,7 +2,7 @@ package Proc::Launcher;
 use strict;
 use warnings;
 
-our $VERSION = '0.0.32'; # VERSION
+our $VERSION = '0.0.33'; # VERSION
 
 use Mouse;
 
@@ -21,7 +21,7 @@ Proc::Launcher - yet another forking process controller
 
 =head1 VERSION
 
-version 0.0.32
+version 0.0.33
 
 =head1 SYNOPSIS
 

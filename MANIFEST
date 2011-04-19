@@ -15,6 +15,7 @@ lib/Proc/Launcher/Roles/Launchable.pm
 lib/Proc/Launcher/Supervisor.pm
 perl-metrics-simple.txt
 t/00.load.t
+t/000-report-versions-tiny.t
 t/10_launcher_sleeper.t
 t/10_launcher_sleeper_class.t
 t/15_launcher_cleanexit.t
