@@ -32,7 +32,7 @@ my %WriteMakefileArgs = (
     'Mouse::Role' => '0',
     'POSIX' => '0'
   },
-  'VERSION' => '0.0.31',
+  'VERSION' => '0.0.32',
   'test' => {
     'TESTS' => 't/*.t'
   }

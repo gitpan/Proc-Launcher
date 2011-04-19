@@ -2,7 +2,7 @@ package Proc::Launcher;
 use strict;
 use warnings;
 
-our $VERSION = '0.0.31'; # VERSION
+our $VERSION = '0.0.32'; # VERSION
 
 use Mouse;
 
@@ -21,7 +21,7 @@ Proc::Launcher - yet another forking process controller
 
 =head1 VERSION
 
-version 0.0.31
+version 0.0.32
 
 =head1 SYNOPSIS
 
@@ -820,8 +820,12 @@ sub write_pipe {
     my ( $self, $string ) = @_;
 
     return unless $self->pipe;
+    $self->_debug( "Writing to pipe" );
 
-    return unless -r $self->pipe_file;
+    unless ( -r $self->pipe_file ) {
+        $self->_debug( "Pipe found but not readable" );
+        return;
+    }
 
     # remove any trailing whitespace
     chomp $string;
